@@ -2,7 +2,7 @@ import path from 'path';
 import webpack from 'webpack';
 
 module.exports = {
-    entry: './main.ts',
+    entry: './src/main.ts',
     output: {
         path: path.resolve(__dirname, '.'),
         filename: 'main.js',
