@@ -1,6 +1,6 @@
 import { Plugin, parseFrontMatterAliases, Notice, TFile, TFolder } from "obsidian";
-
 import { oBridgeSettings, oBridgeSettingTab, DEFAULT_SETTINGS } from "./settings";
+import { isExcludedFile, isExcludedDir, excludeFile, excludeDir } from "./utils"; 
 
 export default class oBridge extends Plugin {
     settings: oBridgeSettings;
@@ -17,13 +17,13 @@ export default class oBridge extends Plugin {
                         .setIcon("no-link")
                         .onClick(async () => {
                             if (file instanceof TFile) {
-                                if (this.excludeFile(file.basename)) {
+                                if (excludeFile(file.basename)) {
                                     new Notice(`Excluded ${file.basename} from oBridge.`);
                                 } else {
                                     new Notice(`File: ${file.basename} is already excluded from oBridge.`);
                                 }
                             } else if (file instanceof TFolder) {
-                                if (this.excludeDir(file.path)) {
+                                if (excludeDir(file.path)) {
                                     new Notice(`Excluded ${file.path} from oBridge.`);
                                 } else {
                                     new Notice(`Directory: ${file.path} is already excluded from oBridge.`);
@@ -44,7 +44,7 @@ export default class oBridge extends Plugin {
                         .onClick(async () => {
                             const file = view.file;
                             if (file instanceof TFile) {
-                                if (this.excludeFile(file.basename)) {
+                                if (excludeFile(file.basename)) {
                                     new Notice(`Excluded ${file.basename} from oBridge.`);
                                 } else {
                                     new Notice(`${file.basename} is already excluded from oBridge.`);
@@ -98,12 +98,12 @@ export default class oBridge extends Plugin {
 
         for (const entity of files) {
             // Check if the file is excluded
-            if (entity instanceof TFile && this.isExcludedFile(entity.basename)) {
+            if (entity instanceof TFile && isExcludedFile(entity.basename)) {
                 continue;
             }
 
             // Check if the file is in an excluded directory
-            if (entity instanceof TFolder && this.isExcludedDir(entity.path)) {
+            if (entity instanceof TFolder && isExcludedDir(entity.path)) {
                 continue;
             }
 
@@ -117,8 +117,7 @@ export default class oBridge extends Plugin {
                     fileName: entity.basename,
                     fullFilePath: entity.path,
                     data: {
-                        aliases,
-                        mode: 0
+                        aliases
                     }
                 });
             }
@@ -143,12 +142,12 @@ export default class oBridge extends Plugin {
             const aliases = result.data.aliases;
 
             // Check if the current file is in the excludedFiles array
-            if (this.isExcludedFile(fileName)) {
+            if (isExcludedFile(fileName)) {
                 continue;
             }
 
             // Check if the current file is in one of the excluded directories
-            if (this.isExcludedDir(fullFilePath)) {
+            if (isExcludedDir(fullFilePath)) {
                 continue;
             }
 
@@ -169,7 +168,7 @@ export default class oBridge extends Plugin {
             }
 
             // Check if the current file is in the excludedFiles array
-            if (this.settings.excludedFiles.includes(file.basename)) {
+            if (isExcludedFile(file.basename)) {
                 continue;
             }
 
@@ -212,59 +211,6 @@ export default class oBridge extends Plugin {
     async saveSettings() {
         await this.saveData(this.settings);
     }
-
-    // Create a helper for isExcludedFile
-    isExcludedFile(file: string): boolean {
-        return this.settings.excludedFiles.includes(file);
-    }
-
-    excludeFile(file: string): boolean {
-        if (this.isExcludedFile(file)) {
-            return false;
-        }
-        this.settings.excludedFiles.push(file);
-        this.saveSettings();
-
-        return true;
-    }
-
-    unexcludeFile(file: string): boolean {
-        if (!this.isExcludedFile(file)) {
-            return false;
-        }
-
-        this.settings.excludedFiles = this.settings.excludedFiles.filter(excludedFile => excludedFile !== file);
-        this.saveSettings();
-
-        return true;
-    }
-
-    // Create a helper for isExcludedDir
-    isExcludedDir(path: string): boolean {
-        return this.settings.excludedDirs.some(excludedDir => path.startsWith(excludedDir));
-    }
-
-    excludeDir(path: string): boolean {
-        if (this.isExcludedDir(path)) {
-            return false;
-        }
-
-        this.settings.excludedDirs.push(path);
-        this.saveSettings();
-
-        return true;
-    }
-
-    unexcludeDir(path: string): boolean {
-        if (!this.isExcludedDir(path)) {
-            return false;
-        }
-
-        this.settings.excludedDirs = this.settings.excludedDirs.filter(excludedDir => excludedDir !== path);
-        this.saveSettings();
-
-        return true;
-    }
 }
 
 
@@ -272,7 +218,6 @@ interface Bridge {
     fileName: string;
     fullFilePath: string;
     data: {
-        aliases: string[];
-        mode: number
+        aliases: string[]
     };
 }
