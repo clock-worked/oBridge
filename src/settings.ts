@@ -262,7 +262,7 @@ export class oBridgeSettingTab extends PluginSettingTab {
                 }),
 
                 new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
-                    .setName("Bridge to Internal Content")
+                    .setName("Bridge to Internal Content") //TODO: NOT WORKING
                     .setDesc("When enabled, links will be created in matching external aliases to this file's content.")
                     .addToggle(async toggle => {
                         toggle

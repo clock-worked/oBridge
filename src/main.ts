@@ -122,6 +122,12 @@ export default class oBridge extends Plugin {
                 continue;
             }
 
+            // Check if file path contains an excluded directory
+            const excludedDir = this.settings.excludedDirs.find(excludedDir => file.path.startsWith(excludedDir.name));
+            if (excludedDir && !excludedDir.canBeLinked) {
+                continue;
+            }
+
             const excludedFile = this.settings.excludedFiles.find(excludedFile => excludedFile.name === file.basename);
             if (excludedFile && !excludedFile.canBeLinked) {
                 continue;
