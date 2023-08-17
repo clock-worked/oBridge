@@ -1,6 +1,5 @@
 import { Plugin, parseFrontMatterAliases, Notice, TFile, TFolder, addIcon } from "obsidian";
 import { oBridgeSettings, oBridgeSettingTab, DEFAULT_SETTINGS } from "./settings";
-import { excludeFile, excludeDir, isExcludedDir, isExcludedFile } from "./utils"; 
 import { OBRIDGE_ICON } from "./icon";
 
 export default class oBridge extends Plugin {
@@ -11,55 +10,6 @@ export default class oBridge extends Plugin {
         addIcon('oBridge', OBRIDGE_ICON)
 
         await this.loadSettings();
-
-        this.registerEvent(
-            this.app.workspace.on("file-menu", (menu, file) => {
-                // Add new menu item for "Excluded from Bridge"
-                menu.addItem((item) => {
-                    item
-                        .setTitle("Exclude from oBridge")
-                        .setIcon("no-link")
-                        .onClick(async () => {
-                            if (file instanceof TFile) {
-                                if (!isExcludedFile(file.basename)) {
-                                    excludeFile(file.basename)
-                                    new Notice(`Excluded ${file.basename} from oBridge.`);
-                                } else {
-                                    new Notice(`File: ${file.basename} is already excluded from oBridge.`);
-                                }
-                            } else if (file instanceof TFolder) {
-                                if (!isExcludedDir(file.path)) {
-                                    excludeDir(file.path);
-                                    new Notice(`Excluded ${file.path} from oBridge.`);
-                                } else {
-                                    new Notice(`Directory: ${file.path} is already excluded from oBridge.`);
-                                }
-                            }
-                        });
-                });
-            })
-        );
-
-        // Register another example event for 'editor-menu'
-        this.registerEvent(
-            this.app.workspace.on("editor-menu", (menu, editor, view) => {
-                menu.addItem((item) => {
-                    item
-                        .setTitle("Exclude file from oBridge")
-                        .setIcon("document")
-                        .onClick(async () => {
-                            const file = view.file;
-                            if (file instanceof TFile) {
-                                if (excludeFile(file.basename)) {
-                                    new Notice(`Excluded ${file.basename} from oBridge.`);
-                                } else {
-                                    new Notice(`${file.basename} is already excluded from oBridge.`);
-                                }
-                            }
-                        });
-                });
-            })
-        );
 
         // Add Ribbon Icon
         this.addRibbonIcon("oBridge", "oBridge vault", async () => {
