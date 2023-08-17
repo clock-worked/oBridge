@@ -1,57 +1,57 @@
 import { TFile, parseFrontMatterAliases } from 'obsidian';
-import {  DEFAULT_EXCLUDED_ENTITY } from './settings';
+import {  DEFAULT_EXCLUDED_ENTITY, excludedEntity } from './settings';
 
     // Create a helper for isExcludedFile
-    export function isExcludedFile(file: string): boolean {
-        return this.settings.excludedFiles.some((excludedFile: { name: string; }) => excludedFile.name === file);
+    export function isExcludedFile(file: string, excludedFiles: excludedEntity[]): boolean {
+        return excludedFiles.some((excludedFile: { name: string; }) => excludedFile.name === file);
     }
 
-    export function excludeFile(file: string): boolean {
+    export function excludeFile(file: string, excludedFiles: excludedEntity[]): excludedEntity[] {
         if (this.isExcludedFile(file)) {
-            return false;
+            return excludedFiles;
         }
-        this.settings.excludedFiles.push({...DEFAULT_EXCLUDED_ENTITY, name: file});
+        excludedFiles.push({...DEFAULT_EXCLUDED_ENTITY, name: file});
         this.saveSettings();
 
-        return true;
+        return excludedFiles;
     }
 
-    export function unexcludeFile(file: string): boolean {
+    export function unexcludeFile(file: string, excludedFiles: excludedEntity[]): excludedEntity[]  {
         if (!this.isExcludedFile(file)) {
-            return false;
+            return excludedFiles;
         }
 
-        this.settings.excludedFiles = this.settings.excludedFiles.filter((excludedFile: { name: string; }) => excludedFile.name !== file);
+        excludedFiles = excludedFiles.filter((excludedFile: { name: string; }) => excludedFile.name !== file);
         this.saveSettings();
 
-        return true;
+        return excludedFiles;
     }
 
     // Create a helper for isExcludedDir
-    export function isExcludedDir(path: string): boolean {
-        return this.settings.excludedDirs.some((excludedDir: { name: string; }) => path.startsWith(excludedDir.name));
+    export function isExcludedDir(path: string, excludedDirs: excludedEntity[]): boolean {
+        return excludedDirs.some((excludedDir: { name: string; }) => path.startsWith(excludedDir.name));
     }
 
-    export function excludeDir(path: string): boolean {
+    export function excludeDir(path: string, excludedDirs: excludedEntity[]): excludedEntity[] {
         if (this.isExcludedDir(path)) {
-            return false;
+            return excludedDirs;
         }
 
-        this.settings.excludedDirs.push({...DEFAULT_EXCLUDED_ENTITY, name: path});
+        excludedDirs.push({...DEFAULT_EXCLUDED_ENTITY, name: path});
         this.saveSettings();
 
-        return true;
+        return excludedDirs;
     }
 
-    export function unexcludeDir(path: string): boolean {
+    export function unexcludeDir(path: string, excludedDirs: excludedEntity[]): excludedEntity[] {
         if (!this.isExcludedDir(path)) {
-            return false;
+            return excludedDirs;
         }
 
-        this.settings.excludedDirs = this.settings.excludedDirs.filter((excludedDir: { name: string; }) => excludedDir.name !== path);
+        excludedDirs = excludedDirs.filter((excludedDir: { name: string; }) => excludedDir.name !== path);
         this.saveSettings();
 
-        return true;
+        return excludedDirs;
     }
 
     export function getAliasesForFile(file: TFile): string[] {
