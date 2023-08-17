@@ -1,4 +1,4 @@
-    import { TFile, parseFrontMatterAliases } from 'obsidian';
+import { TFile, parseFrontMatterAliases } from 'obsidian';
 import {  DEFAULT_EXCLUDED_ENTITY } from './settings';
 
     // Create a helper for isExcludedFile

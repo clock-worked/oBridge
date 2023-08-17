@@ -145,15 +145,29 @@ export class oBridgeSettingTab extends PluginSettingTab {
             this.prepareStylesForNestedSettings(advancedOptionsEl, 0);
 
             new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
-                .setName("Can Link From Outside")
+                .setName("Can Link From Outside") 
                 .setDesc("If enabled, filename and aliases will still be linked from outside the file.")
-                .addToggle(toggle => { toggle.setValue(false); })
+                .addToggle(async toggle => {
+                    toggle
+                      .setValue(excludedFile.canLinkFromOutside ?? true)
+                      .onChange(async (value: boolean) => {
+                        excludedFile.canLinkFromOutside = value;
+                        await this.plugin.saveSettings();
+                      });
+                  }),
+                
 
             new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
                 .setName("Can Be Linked")
                 .setDesc("If enabled, outside filename and aliases will still be linked from inside the file.")
-                .addToggle(toggle => { toggle.setValue(false); })
-
+                .addToggle(async toggle => {
+                    toggle
+                      .setValue(excludedFile.canBeLinked ?? true)
+                      .onChange(async (value: boolean) => {
+                        excludedFile.canBeLinked = value;
+                        await this.plugin.saveSettings();
+                      });
+                  })
         });
 
         this.containerEl.createEl("h3", {
@@ -208,13 +222,15 @@ export class oBridgeSettingTab extends PluginSettingTab {
             const setting = new Setting(settingDiv)
                 .setName(`- ${excludedDir.name}`)
                 .setDesc(aliases.length > 0 ? `Aliases: ${aliases.join(', ')}` : 'No aliases assigned.')
-                .addToggle(toggle => {
-                    toggle.setValue(false)
-                    toggle.setTooltip("Show advanced options")
-                    toggle.onChange(value => {
+                .addToggle(async toggle => {
+                    toggle
+                    .setValue(false)
+                    .setTooltip("Show advanced options")
+                    .onChange(value => {
                         advancedOptionsEl.style.display = value ? 'block' : 'none';
                     })
                 })
+
 
             const advancedOptionsEl = document.createElement('div');
             advancedOptionsEl.style.display = 'none';
@@ -234,13 +250,26 @@ export class oBridgeSettingTab extends PluginSettingTab {
             new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
                 .setName("Can Link From Outside")
                 .setDesc("If enabled, files and aliases will still be linked from outside the directory.")
-                .addToggle(toggle => { toggle.setValue(false); })
+                .addToggle(async toggle => {
+                    toggle
+                        .setValue(excludedDir.canLinkFromOutside ?? true)
+                        .onChange(async (value: boolean) => {
+                            excludedDir.canLinkFromOutside = value;
+                            await this.plugin.saveSettings();
+                        });
+                }),
 
             new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
                 .setName("Can Be Linked")
                 .setDesc("If enabled, outside files and aliases will still be linked from inside the directory.")
-                .addToggle(toggle => { toggle.setValue(false); })
-
+                .addToggle(async toggle => {
+                    toggle
+                        .setValue(excludedDir.canBeLinked ?? true)
+                        .onChange(async (value: boolean) => {
+                            excludedDir.canBeLinked = value;
+                            await this.plugin.saveSettings();
+                        });
+                })
         });
     }
     // method for adjustment style through code

@@ -1,6 +1,6 @@
 import { Plugin, parseFrontMatterAliases, Notice, TFile, TFolder } from "obsidian";
 import { oBridgeSettings, oBridgeSettingTab, DEFAULT_SETTINGS } from "./settings";
-import { isExcludedFile, isExcludedDir, excludeFile, excludeDir } from "./utils"; 
+import { excludeFile, excludeDir, isExcludedDir, isExcludedFile } from "./utils"; 
 
 export default class oBridge extends Plugin {
     settings: oBridgeSettings;
@@ -17,13 +17,15 @@ export default class oBridge extends Plugin {
                         .setIcon("no-link")
                         .onClick(async () => {
                             if (file instanceof TFile) {
-                                if (excludeFile(file.basename)) {
+                                if (!isExcludedFile(file.basename)) {
+                                    excludeFile(file.basename)
                                     new Notice(`Excluded ${file.basename} from oBridge.`);
                                 } else {
                                     new Notice(`File: ${file.basename} is already excluded from oBridge.`);
                                 }
                             } else if (file instanceof TFolder) {
-                                if (excludeDir(file.path)) {
+                                if (!isExcludedDir(file.path)) {
+                                    excludeDir(file.path);
                                     new Notice(`Excluded ${file.path} from oBridge.`);
                                 } else {
                                     new Notice(`Directory: ${file.path} is already excluded from oBridge.`);
@@ -97,16 +99,19 @@ export default class oBridge extends Plugin {
         const files = this.app.vault.getMarkdownFiles();
 
         for (const entity of files) {
-            // Check if the file is excluded
-            if (entity instanceof TFile && isExcludedFile(entity.basename)) {
-                continue;
+            if (entity instanceof TFile) {
+                const excludedFile = this.settings.excludedFiles.find(excludedFile => excludedFile.name === entity.basename);
+                if (excludedFile && !excludedFile.canBeLinked) {
+                    continue;
+                }
             }
 
-            // Check if the file is in an excluded directory
-            if (entity instanceof TFolder && isExcludedDir(entity.path)) {
-                continue;
+            if (entity instanceof TFolder) {
+                const excludedDir = this.settings.excludedDirs.find(excludedDir => entity.path.startsWith(excludedDir.name));
+                if (excludedDir && !excludedDir.canBeLinked) {
+                    continue;
+                }
             }
-
 
             const cache = this.app.metadataCache.getFileCache(entity);
 
@@ -141,34 +146,31 @@ export default class oBridge extends Plugin {
             const fullFilePath = result.fullFilePath;
             const aliases = result.data.aliases;
 
-            // Check if the current file is in the excludedFiles array
-            if (isExcludedFile(fileName)) {
+            const excludedFile = this.settings.excludedFiles.find(excludedFile => excludedFile.name === fileName);
+            if (excludedFile && !excludedFile.canLinkFromOutside) {
                 continue;
             }
 
-            // Check if the current file is in one of the excluded directories
-            if (isExcludedDir(fullFilePath)) {
+            const excludedDir = this.settings.excludedDirs.find(excludedDir => fullFilePath.startsWith(excludedDir.name));
+            if (excludedDir && !excludedDir.canLinkFromOutside) {
                 continue;
             }
 
             aliases.forEach(alias => aliasMap.set(alias, fileName));
-            // Include the file name as an alias for itself
             aliasMap.set(fileName, fileName);
         }
 
-        // Get all files in the vault
         const allFiles = this.app.vault.getMarkdownFiles();
 
-        let bridgesAdded = 0; // Add a counter for the links added
+        let bridgesAdded = 0; 
 
-        // Iterate over each file
         for (const file of allFiles) {
             if (!(file instanceof TFile)) {
                 continue;
             }
 
-            // Check if the current file is in the excludedFiles array
-            if (isExcludedFile(file.basename)) {
+            const excludedFile = this.settings.excludedFiles.find(excludedFile => excludedFile.name === file.basename);
+            if (excludedFile && !excludedFile.canBeLinked) {
                 continue;
             }
 
@@ -190,7 +192,7 @@ export default class oBridge extends Plugin {
                 const newContentWithoutFrontMatter = contentWithoutFrontMatter.replace(regex, replacement);
 
                 if (newContentWithoutFrontMatter !== contentWithoutFrontMatter) {
-                    bridgesAdded++; // Increment the counter each time a link is added
+                    bridgesAdded++; 
                     fileContent = frontMatterEndIndex >= 0 ? fileContent.slice(0, frontMatterEndIndex + 3) + newContentWithoutFrontMatter : newContentWithoutFrontMatter;
                     await this.app.vault.modify(file, fileContent);
 
@@ -201,7 +203,7 @@ export default class oBridge extends Plugin {
             }
         }
 
-        new Notice(`Bridging complete! ${bridgesAdded} links added.`); // Display a notice with the number of links added
+        new Notice(`Bridging complete! ${bridgesAdded} links added.`);
     }
 
     async loadSettings() {
@@ -218,6 +220,6 @@ interface Bridge {
     fileName: string;
     fullFilePath: string;
     data: {
-        aliases: string[]
-    };
+        aliases: string[];
+    }
 }
