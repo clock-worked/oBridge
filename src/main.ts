@@ -1,11 +1,15 @@
-import { Plugin, parseFrontMatterAliases, Notice, TFile, TFolder } from "obsidian";
+import { Plugin, parseFrontMatterAliases, Notice, TFile, TFolder, addIcon } from "obsidian";
 import { oBridgeSettings, oBridgeSettingTab, DEFAULT_SETTINGS } from "./settings";
 import { excludeFile, excludeDir, isExcludedDir, isExcludedFile } from "./utils"; 
+import { OBRIDGE_ICON } from "./icon";
 
 export default class oBridge extends Plugin {
     settings: oBridgeSettings;
 
     async onload() {
+        // oBridge Icon
+        addIcon('oBridge', OBRIDGE_ICON)
+
         await this.loadSettings();
 
         this.registerEvent(
@@ -58,7 +62,7 @@ export default class oBridge extends Plugin {
         );
 
         // Add Ribbon Icon
-        this.addRibbonIcon("equal", "oBridge Files", async () => {
+        this.addRibbonIcon("oBridge", "oBridge vault", async () => {
             try {
                 const tree = await this.scanVault();
                 console.log(tree);
