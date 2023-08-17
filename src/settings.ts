@@ -1,6 +1,6 @@
 
 import { App, PluginSettingTab, Setting, TFolder, Vault } from 'obsidian';
-import { getAliasesForFile, getAliasesForDirectory } from './utils';
+import { getAliasesForFile, getAliasesForDirectory, isExcludedDir, isExcludedFile } from './utils';
 import oBridge from './main';
 
 
@@ -82,7 +82,7 @@ export class oBridgeSettingTab extends PluginSettingTab {
                 const options: { [key: string]: string } = {};
                 this.app.vault.getMarkdownFiles().forEach(file => {
                     // Remove excluded files from dropdown
-                    if (this.plugin.settings.excludedFiles.find(excludedFile => excludedFile.name === file.basename)) {
+                    if (isExcludedFile(file.basename, this.plugin.settings.excludedFiles)) {
                         return;
                     }
                     options[file.basename] = file.basename;
@@ -145,29 +145,29 @@ export class oBridgeSettingTab extends PluginSettingTab {
             this.prepareStylesForNestedSettings(advancedOptionsEl, 0);
 
             new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
-                .setName("Can Link From Outside") 
-                .setDesc("If enabled, filename and aliases will still be linked from outside the file.")
+                .setName("Bridge to External Content")
+                .setDesc("When enabled, links will be created from this file's aliases to matching content outside of the file.")
                 .addToggle(async toggle => {
                     toggle
-                      .setValue(excludedFile.canLinkFromOutside ?? true)
-                      .onChange(async (value: boolean) => {
-                        excludedFile.canLinkFromOutside = value;
-                        await this.plugin.saveSettings();
-                      });
-                  }),
-                
+                        .setValue(excludedFile.canLinkFromOutside ?? true)
+                        .onChange(async (value: boolean) => {
+                            excludedFile.canLinkFromOutside = value;
+                            await this.plugin.saveSettings();
+                        });
+                }),
 
-            new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
-                .setName("Can Be Linked")
-                .setDesc("If enabled, outside filename and aliases will still be linked from inside the file.")
-                .addToggle(async toggle => {
-                    toggle
-                      .setValue(excludedFile.canBeLinked ?? true)
-                      .onChange(async (value: boolean) => {
-                        excludedFile.canBeLinked = value;
-                        await this.plugin.saveSettings();
-                      });
-                  })
+
+                new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
+                    .setName("Bridge to Internal Content")
+                    .setDesc("When enabled, links will be created in matching external content to this file's aliases.")
+                    .addToggle(async toggle => {
+                        toggle
+                            .setValue(excludedFile.canBeLinked ?? true)
+                            .onChange(async (value: boolean) => {
+                                excludedFile.canBeLinked = value;
+                                await this.plugin.saveSettings();
+                            });
+                    })
         });
 
         this.containerEl.createEl("h3", {
@@ -188,7 +188,9 @@ export class oBridgeSettingTab extends PluginSettingTab {
                         return;
                     } else if (file.name === '') {
                         return;
-                    } // TODO: Exclude already excluded directories
+                    } else if (isExcludedDir(file.path, this.plugin.settings.excludedDirs)) {
+                        return;
+                    }
 
                     options[file.path] = file.name;
                 });
@@ -224,11 +226,11 @@ export class oBridgeSettingTab extends PluginSettingTab {
                 .setDesc(aliases.length > 0 ? `Aliases: ${aliases.join(', ')}` : 'No aliases assigned.')
                 .addToggle(async toggle => {
                     toggle
-                    .setValue(false)
-                    .setTooltip("Show advanced options")
-                    .onChange(value => {
-                        advancedOptionsEl.style.display = value ? 'block' : 'none';
-                    })
+                        .setValue(false)
+                        .setTooltip("Show advanced options")
+                        .onChange(value => {
+                            advancedOptionsEl.style.display = value ? 'block' : 'none';
+                        })
                 })
 
 
@@ -248,8 +250,8 @@ export class oBridgeSettingTab extends PluginSettingTab {
             this.prepareStylesForNestedSettings(advancedOptionsEl, 0);
 
             new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
-                .setName("Can Link From Outside")
-                .setDesc("If enabled, files and aliases will still be linked from outside the directory.")
+                .setName("Bridge to External Content")
+                .setDesc("When enabled, links will be created from this file's aliases to matching content outside of the file.")
                 .addToggle(async toggle => {
                     toggle
                         .setValue(excludedDir.canLinkFromOutside ?? true)
@@ -259,17 +261,17 @@ export class oBridgeSettingTab extends PluginSettingTab {
                         });
                 }),
 
-            new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
-                .setName("Can Be Linked")
-                .setDesc("If enabled, outside files and aliases will still be linked from inside the directory.")
-                .addToggle(async toggle => {
-                    toggle
-                        .setValue(excludedDir.canBeLinked ?? true)
-                        .onChange(async (value: boolean) => {
-                            excludedDir.canBeLinked = value;
-                            await this.plugin.saveSettings();
-                        });
-                })
+                new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
+                    .setName("Bridge to Internal Content")
+                    .setDesc("When enabled, links will be created in matching external aliases to this file's content.")
+                    .addToggle(async toggle => {
+                        toggle
+                            .setValue(excludedDir.canBeLinked ?? true)
+                            .onChange(async (value: boolean) => {
+                                excludedDir.canBeLinked = value;
+                                await this.plugin.saveSettings();
+                            });
+                    })
         });
     }
     // method for adjustment style through code
