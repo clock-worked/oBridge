@@ -4,8 +4,7 @@
 	"version": "1.0.1",
 	"minAppVersion": "0.15.0",
 	"description": "A tool for effortlessly creating links between notes to bridge them together.",
-	"author": "Clockwork",
-	"authorUrl": "https://obsidian.md",
-	"fundingUrl": "https://obsidian.md/pricing",
+	"author": "clock-worked",
+	"authorUrl": "https://github.com/clock-worked",
 	"isDesktopOnly": false
 }
