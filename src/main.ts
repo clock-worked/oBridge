@@ -46,7 +46,6 @@ export default class oBridge extends Plugin {
         this.registerInterval(window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000));
     }
 
-
     async scanVault(): Promise<Bridge[]> {
         const results: Bridge[] = [];
 
