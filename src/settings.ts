@@ -46,10 +46,6 @@ export class oBridgeSettingTab extends PluginSettingTab {
 
         this.createGeneralSettings(containerEl);
         this.createExcludeSettings(containerEl);
-
-        // TODO: Add setting to replace existing aliases with file name
-
-        // TODO: Use first alias in list when bridging
     }
 
     private createGeneralSettings(containerEl: HTMLElement) {
@@ -262,7 +258,7 @@ export class oBridgeSettingTab extends PluginSettingTab {
                 }),
 
                 new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
-                    .setName("Bridge to Internal Content") //TODO: NOT WORKING
+                    .setName("Bridge to Internal Content")
                     .setDesc("When enabled, links will be created in matching external aliases to this file's content.")
                     .addToggle(async toggle => {
                         toggle
