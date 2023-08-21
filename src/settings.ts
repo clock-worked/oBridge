@@ -49,12 +49,9 @@ export class oBridgeSettingTab extends PluginSettingTab {
     }
 
     private createGeneralSettings(containerEl: HTMLElement) {
-        this.containerEl.createEl("h3", {
-            text: "General Settings",
-        });
 
         new Setting(containerEl)
-            .setName("Enable Alias to Self")
+            .setName("Enable alias to self")
             .setDesc("If enabled, the alias will be added to the file that reference itself.\n Ex: Note will add [[Note]] to the Note file.")
             .addToggle(toggle => toggle
                 .setValue(this.plugin.settings.addAliasToSelf)
@@ -65,10 +62,6 @@ export class oBridgeSettingTab extends PluginSettingTab {
     }
 
     private createExcludeSettings(containerEl: HTMLElement) {
-        this.containerEl.createEl("h3", {
-            text: "Exclude Files",
-        });
-
         const excludedNotesEl = this.containerEl.createEl('div');
 
         new Setting(excludedNotesEl)
@@ -107,11 +100,10 @@ export class oBridgeSettingTab extends PluginSettingTab {
             const aliases = getAliasesForFile(file);
 
             const settingContainer = excludedNotesEl.createEl('div');
-            settingContainer.style.display = 'flex';
-            settingContainer.style.flexDirection = 'column';
+            settingContainer.className = 'excluded-file-container';
 
             const settingDiv = settingContainer.createEl('div');
-            settingDiv.style.flex = '1';
+            settingDiv.className = 'excluded-file';
 
             const setting = new Setting(settingDiv)
                 .setName(`- ${file.basename}`)
@@ -126,8 +118,8 @@ export class oBridgeSettingTab extends PluginSettingTab {
 
 
             const advancedOptionsEl = document.createElement('div');
-            advancedOptionsEl.style.display = 'none';
-            advancedOptionsEl.className = 'advanced-option';
+            advancedOptionsEl.className = 'advanced-options';
+
             settingContainer.appendChild(advancedOptionsEl);
 
             setting.addButton(button => button
@@ -138,9 +130,9 @@ export class oBridgeSettingTab extends PluginSettingTab {
                     this.display();
                 }));
 
-            this.prepareStylesForNestedSettings(advancedOptionsEl, 0);
+            this.adjustForNestedSettings(advancedOptionsEl, 0);
 
-            new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
+            new Setting(this.adjustForNestedSettings(advancedOptionsEl, 1))
                 .setName("Bridge to External Content")
                 .setDesc("When enabled, links will be created from this file's aliases to matching content outside of the file.")
                 .addToggle(async toggle => {
@@ -153,7 +145,7 @@ export class oBridgeSettingTab extends PluginSettingTab {
                 }),
 
 
-                new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
+                new Setting(this.adjustForNestedSettings(advancedOptionsEl, 1))
                     .setName("Bridge to Internal Content")
                     .setDesc("When enabled, links will be created in matching external content to this file's aliases.")
                     .addToggle(async toggle => {
@@ -164,10 +156,6 @@ export class oBridgeSettingTab extends PluginSettingTab {
                                 await this.plugin.saveSettings();
                             });
                     })
-        });
-
-        this.containerEl.createEl("h3", {
-            text: "Exclude Directories",
         });
 
         const excludedDirsEl = this.containerEl.createEl('div');
@@ -208,11 +196,10 @@ export class oBridgeSettingTab extends PluginSettingTab {
 
         this.plugin.settings.excludedDirs.forEach((excludedDir, index) => {
             const settingContainer = excludedDirsEl.createEl('div');
-            settingContainer.style.display = 'flex';
-            settingContainer.style.flexDirection = 'column';
+            settingContainer.className = 'excluded-dir-container ' + index.toString();
 
             const settingDiv = settingContainer.createEl('div');
-            settingDiv.style.flex = '1';
+            settingDiv.className = 'excluded-dir';
 
             // Create a string of filenames and aliases in the directory
             const aliases = getAliasesForDirectory(excludedDir.name);
@@ -231,7 +218,6 @@ export class oBridgeSettingTab extends PluginSettingTab {
 
 
             const advancedOptionsEl = document.createElement('div');
-            advancedOptionsEl.style.display = 'none';
             advancedOptionsEl.className = 'advanced-option';
             settingContainer.appendChild(advancedOptionsEl);
 
@@ -243,9 +229,9 @@ export class oBridgeSettingTab extends PluginSettingTab {
                     this.display();
                 }));
 
-            this.prepareStylesForNestedSettings(advancedOptionsEl, 0);
+            this.adjustForNestedSettings(advancedOptionsEl, 0);
 
-            new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
+            new Setting(this.adjustForNestedSettings(advancedOptionsEl, 1))
                 .setName("Bridge to External Content")
                 .setDesc("When enabled, links will be created from this file's aliases to matching content outside of the file.")
                 .addToggle(async toggle => {
@@ -257,7 +243,7 @@ export class oBridgeSettingTab extends PluginSettingTab {
                         });
                 }),
 
-                new Setting(this.prepareStylesForNestedSettings(advancedOptionsEl, 1))
+                new Setting(this.adjustForNestedSettings(advancedOptionsEl, 1))
                     .setName("Bridge to Internal Content")
                     .setDesc("When enabled, links will be created in matching external aliases to this file's content.")
                     .addToggle(async toggle => {
@@ -271,7 +257,7 @@ export class oBridgeSettingTab extends PluginSettingTab {
         });
     }
     // method for adjustment style through code
-    protected prepareStylesForNestedSettings(containerEl: HTMLElement, indentLevel: number): HTMLElement {
+    protected adjustForNestedSettings(containerEl: HTMLElement, indentLevel: number): HTMLElement {
         const div = containerEl.createDiv();
         div.style.marginLeft = `${2 * indentLevel}em`;
         return div;

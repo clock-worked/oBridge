@@ -1,8 +1,21 @@
-/*
+.excluded-file-container {
+    display: flex;
+    flex-direction: column;
+}
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+.excluded-directory-container {
+    display: flex;
+    flex-direction: column;
+}
 
-If your plugin does not need CSS, delete this file.
+.excluded-directory {
+    flex: 1;
+}
 
-*/
+.excluded-file {
+    flex: 1;
+}
+
+.advanced-options {
+    display: none;
+}

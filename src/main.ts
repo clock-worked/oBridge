@@ -14,8 +14,7 @@ export default class oBridge extends Plugin {
         // Add Ribbon Icon
         this.addRibbonIcon("oBridge", "oBridge vault", async () => {
             try {
-                const tree = await this.scanVault();
-                console.log(tree);
+                await this.scanVault();
                 await this.createLinksFromScan();
             } catch (err) {
                 console.error("Error scanning vault:", err);
@@ -27,8 +26,7 @@ export default class oBridge extends Plugin {
             name: "Bridge Files in Vault",
             callback: async () => {
                 try {
-                    const tree = await this.scanVault();
-                    console.log(tree);
+                    await this.scanVault();
                     await this.createLinksFromScan();
                 } catch (err) {
                     console.error("Error scanning vault:", err);
@@ -38,10 +36,6 @@ export default class oBridge extends Plugin {
 
 
         this.addSettingTab(new oBridgeSettingTab(this.app, this));
-
-        this.registerDomEvent(document, "click", (evt: MouseEvent) => {
-            console.log("click", evt);
-        });
 
         this.registerInterval(window.setInterval(() => console.log("setInterval"), 5 * 60 * 1000));
     }
@@ -133,31 +127,30 @@ export default class oBridge extends Plugin {
                 continue;
             }
 
-            let fileContent = await this.app.vault.read(file);
-            let frontMatterEndIndex = fileContent.indexOf("---", 3);
-            let contentWithoutFrontMatter = frontMatterEndIndex >= 0 ? fileContent.slice(frontMatterEndIndex + 3) : fileContent;
-
-            // Replace occurrences of each alias in the file content (excluding the front matter)
             for (const [alias, originName] of aliasMap.entries()) {
+                if (!(file instanceof TFile)) {
+                    continue;
+                }
+            
+                let fileContent = await this.app.vault.read(file);
+                const frontMatterEndIndex = fileContent.indexOf("---", 3);
+                const contentWithoutFrontMatter = frontMatterEndIndex >= 0 ? fileContent.slice(frontMatterEndIndex + 3) : fileContent;
+            
                 if (!this.settings.addAliasToSelf && file.basename === originName) {
                     // Don't replace the alias if it's the same as the file name
                     continue;
                 }
-
+            
                 const regex = new RegExp(`(?<!\\[|\\|)\\b${alias}\\b(?!\\[|\\|)`, 'g')
-
+            
                 // If the alias is the same as the filename, don't use the alias in the replacement
                 const replacement = alias === originName ? `[[${originName}]]` : `[[${originName}|${alias}]]`;
                 const newContentWithoutFrontMatter = contentWithoutFrontMatter.replace(regex, replacement);
-
+            
                 if (newContentWithoutFrontMatter !== contentWithoutFrontMatter) {
                     bridgesAdded++; 
                     fileContent = frontMatterEndIndex >= 0 ? fileContent.slice(0, frontMatterEndIndex + 3) + newContentWithoutFrontMatter : newContentWithoutFrontMatter;
                     await this.app.vault.modify(file, fileContent);
-
-                    fileContent = await this.app.vault.read(file);
-                    frontMatterEndIndex = fileContent.indexOf("---", 3);
-                    contentWithoutFrontMatter = frontMatterEndIndex >= 0 ? fileContent.slice(frontMatterEndIndex + 3) : fileContent;
                 }
             }
         }
